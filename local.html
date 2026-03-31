@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Trip - Trip Planner</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: 'YOUR_SECURITY_CODE', // 实际应用中需替换
+        }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_KEY"></script>
+</head>
+<body class="bg-light" data-i18n-title="home.local.title">
+    <header class="main-header">
+        <div class="container">
+            <div class="header-left">
+                <a href="index.html" class="back-link"><i class="fa-solid fa-chevron-left"></i> <span data-i18n="common.backHome">Back</span></a>
+                <div class="logo mini">
+                    <i class="fa-regular fa-compass"></i>
+                    <span data-i18n="app.name">Trip Planner</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="lang-switch" id="lang-switch" type="button">EN</button>
+                <div class="user-profile">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="planner-main container">
+        <!-- 顶部设置区域 -->
+        <section class="planner-top-bar card">
+            <!-- 左侧表单项 -->
+            <div class="top-bar-left">
+                <div class="input-row">
+                    <label data-i18n="local.city">City</label>
+                    <div class="searchable-select" id="city-searchable">
+                        <input type="text" id="city-input" value="北京" data-i18n-placeholder="local.city.ph" placeholder="Type or select a city">
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                        <ul class="options-list" id="city-options-list">
+                            <!-- JS will populate with more cities -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label data-i18n="local.destination">Place</label>
+                    <div class="input-with-icon searchable-select" id="dest-searchable">
+                        <i class="fa-solid fa-location-dot prefix-icon"></i>
+                        <input type="text" id="destination-input" data-i18n-placeholder="local.destination.ph" placeholder="e.g. Palace Museum, Nanluoguxiang">
+                        <ul class="options-list">
+                            <!-- JS will populate -->
+                        </ul>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label data-i18n="local.time">Time</label>
+                    <div class="input-with-icon searchable-select" id="time-searchable">
+                        <i class="fa-regular fa-calendar prefix-icon"></i>
+                        <input type="text" id="time-input" data-i18n-placeholder="local.time.ph" placeholder="Start - End" readonly>
+                        <i class="fa-solid fa-chevron-down arrow"></i>
+                        <div class="options-list time-picker-dropdown">
+                            <div class="time-picker-columns">
+                                <div class="time-column">
+                                    <div class="column-header" data-i18n="local.timeStart">Start</div>
+                                    <ul class="start-time-list">
+                                        <!-- JS will generate 00-23 -->
+                                    </ul>
+                                </div>
+                                <div class="time-column">
+                                    <div class="column-header" data-i18n="local.timeEnd">End</div>
+                                    <ul class="end-time-list">
+                                        <!-- JS will generate 00-23 -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="time-picker-footer">
+                                <button class="btn-time-confirm" data-i18n="local.confirm">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label data-i18n="local.preference">Preference</label>
+                    <div class="chips" id="pref-chips">
+                        <span class="chip" data-pref="citywalk" data-i18n="local.pref.citywalk">Citywalk</span>
+                        <span class="chip" data-pref="art" data-i18n="local.pref.art">Art & Exhibits</span>
+                        <span class="chip" data-pref="cycling" data-i18n="local.pref.cycling">Cycling</span>
+                        <span class="chip active" data-pref="mixed" data-i18n="local.pref.mixed">Mixed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间天气 -->
+            <div class="top-bar-middle">
+                <label class="section-label" data-i18n="local.weather">Weather</label>
+                <div class="weather-mini-card" id="weather-card">
+                    <div class="weather-main">
+                        <div class="weather-info">
+                            <span class="temp">22°C</span>
+                            <span class="desc">Sunny</span>
+                            <span class="details" data-i18n="local.weatherDetails">Humidity 45% · NE wind 3</span>
+                        </div>
+                        <i class="fa-solid fa-sun weather-icon"></i>
+                        <div class="air-quality">
+                            <span data-i18n="local.airGood">Good</span>
+                            <span class="aqi-val">32</span>
+                        </div>
+                    </div>
+                    <div class="weather-forecast">
+                        <div class="forecast-item">
+                            <span data-i18n="local.now">Now</span>
+                            <i class="fa-solid fa-sun"></i>
+                            <span>22°</span>
+                        </div>
+                        <div class="forecast-item">
+                            <span>14:00</span>
+                            <i class="fa-solid fa-sun"></i>
+                            <span>23°</span>
+                        </div>
+                        <div class="forecast-item">
+                            <span>15:00</span>
+                            <i class="fa-solid fa-cloud-sun"></i>
+                            <span>24°</span>
+                        </div>
+                        <div class="forecast-item">
+                            <span>16:00</span>
+                            <i class="fa-solid fa-cloud"></i>
+                            <span>23°</span>
+                        </div>
+                        <div class="forecast-item">
+                            <span>17:00</span>
+                            <i class="fa-solid fa-cloud"></i>
+                            <span>21°</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧操作 -->
+            <div class="top-bar-right">
+                <button class="btn btn-primary btn-magic">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="local.smartPlan">Smart Plan</span>
+                </button>
+                <button class="btn btn-outline btn-plain"><span data-i18n="local.selfPlan">Plan Myself</span></button>
+            </div>
+        </section>
+
+        <div class="planner-content">
+            <!-- 左侧智能导入 -->
+            <aside class="planner-sidebar">
+                <div class="sidebar-section card">
+                    <h3 data-i18n="local.smartImport">Smart Import</h3>
+                    <div class="import-box">
+                        <div class="import-header">
+                            <i class="fa-solid fa-bars-staggered"></i>
+                            <span data-i18n="local.textImport">Text / Link</span>
+                        </div>
+                        <textarea data-i18n-placeholder="local.textImport.ph" placeholder="Paste notes, guide links, or any text..."></textarea>
+                        <button class="btn btn-outline btn-xs btn-right" data-i18n="local.parseRoute">Parse Route</button>
+                    </div>
+                    <div class="import-box mt-16">
+                        <div class="import-header">
+                            <i class="fa-regular fa-image"></i>
+                            <span data-i18n="local.screenshotImport">Screenshot</span>
+                        </div>
+                        <div class="image-upload-area" id="drop-area">
+                            <input type="file" id="screenshot-file" accept="image/*" style="display: none;">
+                            <i class="fa-regular fa-image upload-icon"></i>
+                            <p data-i18n="local.screenshot.hint1">Click or paste image (Ctrl+V)</p>
+                            <span class="hint" data-i18n="local.screenshot.hint2">Supports JPG, PNG</span>
+                        </div>
+                        <button class="btn btn-outline btn-xs btn-right" id="parse-image-btn" data-i18n="local.parseRoute">Parse Route</button>
+                    </div>
+                </div>
+
+                <!-- 智能解析结果展示区 -->
+                <div class="sidebar-section card mt-16" id="import-results-section" style="display: none;">
+                    <h3 data-i18n="local.parsedTitle">Parsed Itinerary</h3>
+                    <div class="import-results-list" id="import-results-list">
+                        <!-- 解析出的卡片将罗列在这里 -->
+                    </div>
+                </div>
+
+                <!-- 始终显示的添加按钮 -->
+                <div class="sidebar-actions mt-16">
+                    <button class="btn btn-primary btn-full" id="add-to-route-btn">
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="local.addToTrip">Add to My Trip</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- 中间主内容区 -->
+            <div class="planner-main-area">
+                <div class="main-area-header">
+                    <h3 data-i18n="local.myTrip">My Trip</h3>
+                </div>
+                <div class="map-container card" id="map-container">
+                    <div class="map-placeholder">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span data-i18n="local.mapArea">Map Area</span>
+                    </div>
+                    <!-- AMap will render here -->
+                    <div class="map-controls">
+                        <button class="zoom-btn">+</button>
+                        <button class="zoom-btn">-</button>
+                    </div>
+                </div>
+
+                <div class="route-preview card" id="route-preview-section">
+                    <div class="route-preview-header">
+                        <h3 data-i18n="local.routePreview">Route Preview</h3>
+                        <button class="btn-batch-edit" id="btn-batch-edit">
+                            <i class="fa-regular fa-pen-to-square"></i> <span data-i18n="local.editRoute">Edit Route</span>
+                        </button>
+                    </div>
+                    <div class="route-list" id="route-list">
+                        <!-- JS will render -->
+                    </div>
+                    <button class="btn-add-point">
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="local.addPoint">Add a Stop</span>
+                    </button>
+                </div>
+
+                <div class="travel-notes grid-2">
+                    <div class="card">
+                        <h3><i class="fa-regular fa-file-lines"></i> <span data-i18n="local.notes">Notes</span></h3>
+                        <textarea data-i18n-placeholder="local.notes.ph" placeholder="Write down tips and reminders..."></textarea>
+                    </div>
+                    <div class="card">
+                        <h3><i class="fa-regular fa-square-check"></i> <span data-i18n="local.checklist">Checklist</span></h3>
+                        <ul class="checklist"></ul>
+                        <div class="add-item">
+                            <input type="text" id="checklist-input" data-i18n-placeholder="local.addItem.ph" placeholder="Add an item...">
+                            <button class="btn btn-primary btn-xs" id="checklist-add-btn" data-i18n="local.add">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="bottom-action-bar">
+        <button class="btn btn-outline btn-large mr-12" id="btn-export-image">
+            <i class="fa-regular fa-image"></i> <span data-i18n="local.exportImg">Export Image</span>
+        </button>
+        <button class="btn btn-outline btn-large mr-12" id="btn-export-ics">
+            <i class="fa-regular fa-calendar"></i> <span data-i18n="local.exportIcs">Sync to Calendar</span>
+        </button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/local.js"></script>
+</body>
+</html>

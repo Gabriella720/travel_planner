@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Planner</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-i18n-title="home.title">
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <i class="fa-regular fa-compass"></i>
+                <span data-i18n="app.name">Trip Planner</span>
+            </div>
+            <div class="header-actions">
+                <button class="lang-switch" id="lang-switch" type="button">EN</button>
+                <div class="user-profile">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="home-main">
+        <div class="hero-section">
+            <h1 data-i18n="home.title">Explore Your Trip</h1>
+            <p data-i18n="home.subtitle">Whether it’s a city stroll nearby or an adventure far away, Trip Planner helps you plan every perfect journey.</p>
+        </div>
+
+        <div class="cards-container container">
+            <div class="mode-card">
+                <div class="card-icon local-icon">
+                    <i class="fa-solid fa-house-chimney"></i>
+                </div>
+                <h2 data-i18n="home.local.title">Local Trip</h2>
+                <p data-i18n="home.local.desc">Discover hidden gems and Citywalk routes around your city.</p>
+                <a href="local.html" class="btn btn-primary" data-i18n="home.local.cta">Start Planning</a>
+            </div>
+
+            <div class="mode-card">
+                <div class="card-icon domestic-icon">
+                    <i class="fa-solid fa-flag"></i>
+                </div>
+                <h2 data-i18n="home.domestic.title">Domestic Travel</h2>
+                <p data-i18n="home.domestic.desc">Explore popular destinations nationwide and experience local culture and scenery.</p>
+                <a href="domestic.html" class="btn btn-outline" data-i18n="home.domestic.cta">Explore Destinations</a>
+            </div>
+
+            <div class="mode-card">
+                <div class="card-icon foreign-icon">
+                    <i class="fa-solid fa-earth-americas"></i>
+                </div>
+                <h2 data-i18n="home.foreign.title">International Travel</h2>
+                <p data-i18n="home.foreign.desc">Plan your overseas trip, enjoy diverse cultures, and explore the world.</p>
+                <a href="foreign.html" class="btn btn-outline" data-i18n="home.foreign.cta">Explore the World</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p data-i18n="home.footer">© 2026 Trip Planner. All rights reserved.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
