@@ -13,7 +13,7 @@
     </script>
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=YOUR_AMAP_KEY"></script>
 </head>
-<body class="bg-light" data-i18n-title="home.local.title">
+<body class="bg-light" data-i18n-title="home.local.title" data-agent-demo="true">
     <header class="main-header">
         <div class="container">
             <div class="header-left">
@@ -141,13 +141,6 @@
                 </div>
             </div>
 
-            <!-- 右侧操作 -->
-            <div class="top-bar-right">
-                <button class="btn btn-primary btn-magic">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="local.smartPlan">Smart Plan</span>
-                </button>
-                <button class="btn btn-outline btn-plain"><span data-i18n="local.selfPlan">Plan Myself</span></button>
-            </div>
         </section>
 
         <div class="planner-content">
@@ -200,6 +193,7 @@
                     <h3 data-i18n="local.myTrip">My Trip</h3>
                 </div>
                 <div class="map-container card" id="map-container">
+                    <div class="mock-map"></div>
                     <div class="map-placeholder">
                         <i class="fa-solid fa-location-dot"></i>
                         <span data-i18n="local.mapArea">Map Area</span>

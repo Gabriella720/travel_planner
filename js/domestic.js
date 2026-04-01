@@ -18,11 +18,20 @@ document.addEventListener('DOMContentLoaded', () => {
         厦门: 'Xiamen'
     };
 
+    const buildImageUrl = (city) => {
+        const q = encodeURIComponent(`${city} travel`);
+        return `https://source.unsplash.com/featured/800x600?${q}`;
+    };
+
     // 状态管理
     const state = {
         wishlist: Utils.getStorage('wishlist', [
-            { id: 1, city: '大理', date: '2026-05-01', temp: '22°C', isSunny: true },
-            { id: 2, city: '拉萨', date: '2026-06-15', temp: '18°C', isSunny: false }
+            { id: 1, city: '大理', date: '2026-05-01', temp: '22°C', isSunny: true, image: buildImageUrl('大理') },
+            { id: 2, city: '拉萨', date: '2026-06-15', temp: '18°C', isSunny: false, image: buildImageUrl('拉萨') },
+            { id: 3, city: '北京', date: '2026-04-20', temp: '20°C', isSunny: true, image: buildImageUrl('北京') },
+            { id: 4, city: '上海', date: '2026-05-18', temp: '24°C', isSunny: true, image: buildImageUrl('上海') },
+            { id: 5, city: '成都', date: '2026-06-02', temp: '26°C', isSunny: false, image: buildImageUrl('成都') },
+            { id: 6, city: '厦门', date: '2026-06-22', temp: '28°C', isSunny: true, image: buildImageUrl('厦门') }
         ])
     };
 
@@ -40,10 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
         wishlistContainer.innerHTML = '';
         state.wishlist.forEach((item) => {
             const cityLabel = lang() === 'zh' ? item.city : (CITY_EN_MAP[item.city] || item.city);
+            const imageUrl = item.image || buildImageUrl(item.city);
             const card = document.createElement('div');
             card.className = 'wishlist-card card';
             card.innerHTML = `
-                <div class="card-image-placeholder">
+                <div class="card-image-placeholder ${imageUrl ? 'has-image' : ''}" ${imageUrl ? `style="background-image:url('${imageUrl}')"` : ''}>
+                    ${imageUrl ? '<div class="card-image-overlay"></div>' : ''}
                     <i class="fa-solid fa-mountain-sun"></i>
                 </div>
                 <div class="card-content">
@@ -93,7 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 city,
                 date,
                 temp: '20°C', // 模拟数据
-                isSunny: Math.random() > 0.5 // 随机模拟天气提醒
+                isSunny: Math.random() > 0.5, // 随机模拟天气提醒
+                image: buildImageUrl(city)
             };
             state.wishlist.push(newItem);
             renderWishlist();

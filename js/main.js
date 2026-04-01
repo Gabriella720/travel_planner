@@ -131,7 +131,38 @@
             'foreign.title': 'International Travel',
             'foreign.coming': 'Coming Soon',
             'foreign.desc': 'We’re working on global data to bring you an expanded travel experience.',
-            'foreign.back': 'Back to Home'
+            'foreign.back': 'Back to Home',
+
+            'agent.title': 'AI Travel Agent',
+            'agent.placeholder': 'I want to go to Japan for 7 days, budget 10k, and I love anime.',
+            'agent.generate': 'Generate Itinerary',
+            'agent.optimize': 'Optimize Plan',
+            'agent.full': 'Full Travel Plan',
+            'agent.empty': 'Describe your trip needs, then click “Generate Itinerary”. I’ll show my reasoning and output in cards.',
+            'agent.thinkingTitle': 'AI Reasoning',
+            'agent.think.1': 'Analyzing your preferences...',
+            'agent.think.2': 'Matching destinations...',
+            'agent.think.3': 'Optimizing route...',
+            'agent.think.4': 'Generating itinerary...',
+            'agent.optimizingTitle': 'Re-optimizing...',
+            'agent.optimizing.1': 'Re-checking time and budget constraints...',
+            'agent.optimizing.2': 'Re-ordering route for efficiency...',
+            'agent.optimizing.3': 'Refreshing the itinerary details...',
+            'agent.fullTitle': 'Generating full plan...',
+            'agent.full.1': 'Selecting hotel areas and preferences...',
+            'agent.full.2': 'Allocating budget and transport strategy...',
+            'agent.full.3': 'Compiling the complete travel package...',
+            'agent.followup.q': 'Do you prefer nature views or city vibes?',
+            'agent.followup.nature': 'Nature',
+            'agent.followup.city': 'City',
+            'agent.card.dest': 'Recommended Destination',
+            'agent.card.reason': 'Reasoning',
+            'agent.card.itinerary': 'Itinerary',
+            'agent.card.tips': 'Travel Tips',
+            'agent.card.hotel': 'Hotel Suggestions',
+            'agent.card.budget': 'Budget Breakdown',
+            'agent.card.transport': 'Transport',
+            'agent.notice.emptyInput': 'Please enter your travel request first.'
         },
         zh: {
             'app.name': '行程助手',
@@ -262,7 +293,38 @@
             'foreign.title': '国外旅行',
             'foreign.coming': '敬请期待',
             'foreign.desc': '我们正在努力接入全球旅游数据，为您提供更广阔的探索体验。',
-            'foreign.back': '返回首页'
+            'foreign.back': '返回首页',
+
+            'agent.title': 'AI Travel Agent',
+            'agent.placeholder': '我想去日本7天，预算1万，喜欢动漫',
+            'agent.generate': '生成行程',
+            'agent.optimize': '🔄 优化行程',
+            'agent.full': '✨ 生成完整旅行方案',
+            'agent.empty': '输入你的旅行需求并点击“生成行程”。我会展示思考过程，并用卡片输出结果。',
+            'agent.thinkingTitle': 'AI 思考过程',
+            'agent.think.1': '正在分析用户偏好...',
+            'agent.think.2': '正在匹配目的地...',
+            'agent.think.3': '正在优化路线...',
+            'agent.think.4': '正在生成行程...',
+            'agent.optimizingTitle': '正在重新优化...',
+            'agent.optimizing.1': '正在重新校验时间与预算约束...',
+            'agent.optimizing.2': '正在重新排序动线以提升效率...',
+            'agent.optimizing.3': '正在微调每日安排细节...',
+            'agent.fullTitle': '正在生成完整方案...',
+            'agent.full.1': '正在选择适合的酒店区域与偏好...',
+            'agent.full.2': '正在分配预算并制定交通策略...',
+            'agent.full.3': '正在汇总完整旅行包...',
+            'agent.followup.q': '你更喜欢自然风光还是城市体验？',
+            'agent.followup.nature': '自然',
+            'agent.followup.city': '城市',
+            'agent.card.dest': '📍 推荐目的地',
+            'agent.card.reason': '🧠 推荐理由',
+            'agent.card.itinerary': '📅 行程安排',
+            'agent.card.tips': '💡 旅行建议',
+            'agent.card.hotel': '🏨 酒店推荐（mock）',
+            'agent.card.budget': '💰 预算分配（mock）',
+            'agent.card.transport': '🚆 交通建议（mock）',
+            'agent.notice.emptyInput': '请先输入你的旅行需求。'
         }
     };
 
@@ -329,10 +391,501 @@
 
     window.I18n = { t, getLang, setLang, apply };
 
+    const initAgent = () => {
+        if (!document.body || document.body.dataset.agentDemo !== 'true') return;
+        if (document.getElementById('ai-agent-panel')) return;
+
+        const escapeHtml = (val) =>
+            String(val)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+
+        const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        const state = {
+            isBusy: false,
+            isOpen: true,
+            lastRequest: '',
+            followUp: null,
+            plan: null,
+            fullEnabled: false
+        };
+
+        const fab = document.createElement('button');
+        fab.type = 'button';
+        fab.className = 'ai-agent-fab';
+        fab.setAttribute('aria-label', 'AI Travel Agent');
+        fab.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i>';
+
+        const panel = document.createElement('section');
+        panel.className = 'ai-agent-panel';
+        panel.id = 'ai-agent-panel';
+        panel.innerHTML = `
+            <div class="ai-agent-header">
+                <div class="ai-agent-title">
+                    <i class="fa-solid fa-brain"></i>
+                    <span data-i18n="agent.title">AI Travel Agent</span>
+                </div>
+                <button type="button" class="ai-agent-close" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="ai-agent-body">
+                <textarea class="ai-agent-input" id="ai-agent-input" data-i18n-placeholder="agent.placeholder" placeholder=""></textarea>
+                <div class="ai-agent-actions">
+                    <button type="button" class="btn btn-primary" id="ai-agent-generate">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span data-i18n="agent.generate">生成行程</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="ai-agent-optimize">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span data-i18n="agent.optimize">🔄 优化行程</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-fullrow" id="ai-agent-full">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span data-i18n="agent.full">✨ 生成完整旅行方案</span>
+                    </button>
+                </div>
+                <div class="ai-agent-feed" id="ai-agent-feed">
+                    <div class="ai-empty" id="ai-agent-empty" data-i18n="agent.empty">...</div>
+                    <div class="ai-thinking" id="ai-agent-thinking" style="display:none;">
+                        <div class="ai-thinking-title">
+                            <i class="fa-solid fa-circle-nodes"></i>
+                            <span data-i18n="agent.thinkingTitle">AI 思考过程</span>
+                            <span class="ai-pill" style="margin-left:auto;">
+                                <span class="dot"></span>
+                                <span id="ai-agent-status">Ready</span>
+                            </span>
+                        </div>
+                        <div id="ai-agent-thinking-lines"></div>
+                    </div>
+                    <div class="ai-cards" id="ai-agent-cards"></div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(fab);
+        document.body.appendChild(panel);
+        apply(panel);
+
+        const inputEl = panel.querySelector('#ai-agent-input');
+        const generateBtn = panel.querySelector('#ai-agent-generate');
+        const optimizeBtn = panel.querySelector('#ai-agent-optimize');
+        const fullBtn = panel.querySelector('#ai-agent-full');
+        const closeBtn = panel.querySelector('.ai-agent-close');
+        const emptyEl = panel.querySelector('#ai-agent-empty');
+        const thinkingEl = panel.querySelector('#ai-agent-thinking');
+        const thinkingLinesEl = panel.querySelector('#ai-agent-thinking-lines');
+        const cardsEl = panel.querySelector('#ai-agent-cards');
+        const statusEl = panel.querySelector('#ai-agent-status');
+
+        const setOpen = (open) => {
+            state.isOpen = open;
+            if (open) panel.classList.remove('closed');
+            else panel.classList.add('closed');
+        };
+
+        setOpen(true);
+
+        fab.addEventListener('click', () => setOpen(!state.isOpen));
+        closeBtn.addEventListener('click', () => setOpen(false));
+
+        const setBusy = (busy, statusText) => {
+            state.isBusy = busy;
+            generateBtn.disabled = busy;
+            optimizeBtn.disabled = busy;
+            fullBtn.disabled = busy;
+            if (statusText) statusEl.textContent = statusText;
+        };
+
+        const typeLine = async (text) => {
+            const lineEl = document.createElement('div');
+            lineEl.className = 'ai-thought-line ai-caret';
+            thinkingLinesEl.appendChild(lineEl);
+            lineEl.textContent = '';
+            for (let i = 0; i < text.length; i += 1) {
+                lineEl.textContent += text[i];
+                await sleep(14 + Math.random() * 18);
+            }
+            lineEl.classList.remove('ai-caret');
+        };
+
+        const renderShimmer = () => {
+            cardsEl.innerHTML = `
+                <div class="ai-card ai-shimmer" style="height: 92px;"></div>
+                <div class="ai-card ai-shimmer" style="height: 122px;"></div>
+                <div class="ai-card ai-shimmer" style="height: 168px;"></div>
+                <div class="ai-card ai-shimmer" style="height: 118px;"></div>
+            `;
+        };
+
+        const parseRequest = (rawText) => {
+            const text = String(rawText || '').trim();
+            const lower = text.toLowerCase();
+            const daysMatch = text.match(/(\d{1,2})\s*(天|days?)/i);
+            const days = daysMatch ? Math.max(2, Math.min(14, parseInt(daysMatch[1], 10))) : 7;
+
+            const budgetWanMatch = text.match(/预算\s*(\d+(?:\.\d+)?)\s*万/);
+            const budgetKMatch = text.match(/预算\s*(\d+(?:\.\d+)?)\s*(k|千|w)/i);
+            const budgetPlainMatch = text.match(/预算\s*(\d{3,6})/);
+            const budgetCny = budgetWanMatch
+                ? Math.round(parseFloat(budgetWanMatch[1]) * 10000)
+                : budgetKMatch
+                    ? Math.round(parseFloat(budgetKMatch[1]) * 1000)
+                    : budgetPlainMatch
+                        ? parseInt(budgetPlainMatch[1], 10)
+                        : null;
+
+            const tags = {
+                japan: /日本|japan/.test(text),
+                island: /海岛|海边|沙滩|island|beach/.test(lower),
+                city: /城市|city|shopping|逛街|博物馆|museum/.test(lower),
+                europe: /欧洲|europe|paris|rome|london/.test(lower),
+                usa: /美国|usa|new york|nyc/.test(lower),
+                anime: /动漫|anime|秋叶原|akihabara|吉卜力|ghibli/.test(lower),
+                food: /美食|吃|food|restaurant|拉面|寿司/.test(lower),
+                nature: /自然|风光|徒步|hiking|lake|mountain|温泉|onsen/.test(lower)
+            };
+
+            return { text, lower, days, budgetCny, tags };
+        };
+
+        const pickDestination = (meta) => {
+            if (meta.tags.japan) return { headline: '东京 + 京都', type: 'japan' };
+            if (meta.tags.island) return { headline: '巴厘岛 + 乌布', type: 'island' };
+            if (meta.tags.europe) return { headline: '巴黎 + 里昂', type: 'europe' };
+            if (meta.tags.usa) return { headline: '纽约 + 波士顿', type: 'usa' };
+            if (meta.tags.city) return { headline: '上海 + 杭州', type: 'china-city' };
+            return { headline: '东京 + 京都', type: 'japan' };
+        };
+
+        const buildItinerary = (meta, dest, followUp) => {
+            const dayTemplates = {
+                japan: [
+                    '东京 - 涩谷 / 秋叶原',
+                    '东京 - 浅草 / 上野',
+                    '东京 - 新宿 / 明治神宫',
+                    '镰仓/箱根 一日游 - 海景/温泉',
+                    '京都 - 清水寺 / 祇园',
+                    '京都 - 伏见稻荷 / 岚山',
+                    '返程 - 伴手礼 / 机场'
+                ],
+                island: [
+                    '抵达 - 海边放松 / 日落',
+                    '海滩日 - 浮潜 / 水上项目',
+                    '乌布 - 梯田 / 森林漫步',
+                    '海岛跳岛 - 出海一日',
+                    '咖啡庄园 - 手作体验 / SPA',
+                    '自由日 - 购物 / 打卡餐厅',
+                    '返程 - 轻松收尾'
+                ],
+                europe: [
+                    '巴黎 - 塞纳河 / 埃菲尔铁塔',
+                    '巴黎 - 卢浮宫 / 老城区',
+                    '巴黎 - 蒙马特 / 咖啡馆',
+                    '里昂 - 老城漫步 / 美食',
+                    '里昂 - 近郊小镇一日游',
+                    '巴黎 - 购物 / 博物馆补票',
+                    '返程 - 机场'
+                ],
+                usa: [
+                    '纽约 - 时代广场 / 中城夜景',
+                    '纽约 - 大都会博物馆 / 中央公园',
+                    '纽约 - 华尔街 / 布鲁克林',
+                    '波士顿 - 自由之路 / 校园',
+                    '波士顿 - 海鲜 / 码头',
+                    '纽约 - 购物 / 观景台',
+                    '返程 - 机场'
+                ],
+                'china-city': [
+                    '上海 - 外滩 / 南京路',
+                    '上海 - 武康路 / 新天地',
+                    '上海 - 博物馆 / 田子坊',
+                    '杭州 - 西湖 / 灵隐寺',
+                    '杭州 - 龙井 / 茶园',
+                    '上海 - 购物 / 复盘打卡',
+                    '返程 - 高铁/机场'
+                ]
+            };
+
+            const base = dayTemplates[dest.type] || dayTemplates.japan;
+            const list = [];
+            for (let i = 0; i < meta.days; i += 1) {
+                const idx = i < base.length ? i : (i % base.length);
+                let title = base[idx];
+                if (followUp === 'nature') {
+                    if (dest.type === 'japan' && i === 3) title = '箱根/富士山 一日游 - 温泉/自然风光';
+                    if (dest.type === 'china-city' && i === 3) title = '杭州 - 西湖骑行 / 夕阳';
+                }
+                if (followUp === 'city') {
+                    if (dest.type === 'japan' && i === 3) title = '东京 - 银座 / 代官山 / 咖啡馆';
+                    if (dest.type === 'island' && i === 2) title = '海边打卡 - 网红餐厅 / 夜市';
+                }
+                list.push(`Day ${i + 1}: ${title}`);
+            }
+            return list;
+        };
+
+        const buildReasoning = (meta, dest) => {
+            const lang = getLang();
+            const points = [];
+            if (lang === 'zh') {
+                const extracted = [];
+                if (meta.tags.japan) extracted.push('日本');
+                if (meta.days) extracted.push(`${meta.days}天`);
+                if (meta.budgetCny) extracted.push(`预算约${meta.budgetCny.toLocaleString()}元`);
+                if (meta.tags.anime) extracted.push('动漫偏好');
+                if (meta.tags.food) extracted.push('美食偏好');
+                if (meta.tags.nature) extracted.push('自然/温泉偏好');
+                if (extracted.length) points.push(`需求解析：${extracted.join(' · ')}`);
+                points.push(`目的地匹配：选择 ${dest.headline} 作为主线，兼顾“城市体验 + 交通效率”。`);
+                points.push('路线优化：按“同区域聚类 + 动线最短 + 体力分配”重新排序每日安排。');
+                points.push('风险控制：为热门景点预留预约/排队缓冲，并在中段安排可弹性调整的一日游。');
+                return points;
+            }
+            if (meta.tags.anime) points.push('Preference fit: anime-related areas and themed spots are prioritized.');
+            if (meta.budgetCny) points.push(`Budget constraint: designed to stay around CNY ${meta.budgetCny.toLocaleString()} with flexible options.`);
+            points.push(`Destination match: ${dest.headline} balances highlights and transit efficiency.`);
+            points.push('Route optimization: grouped by areas to reduce backtracking and keep each day smooth.');
+            return points;
+        };
+
+        const buildTips = (meta, dest) => {
+            const lang = getLang();
+            if (lang === 'zh') {
+                const tips = [
+                    '尽量避开周末热门景点，或安排在早上第一波入场。',
+                    '地铁/巴士建议使用通票或电子卡，减少排队时间。',
+                    '每天预留 1–2 小时机动时间，用于排队/天气/临时想去的点。'
+                ];
+                if (dest.type === 'japan') tips.unshift('秋叶原/主题店建议在工作日午后，体验更舒适。');
+                if (meta.tags.food) tips.push('热门餐厅建议提前预约或错峰用餐（14:00–17:00）。');
+                return tips;
+            }
+            const tips = [
+                'Avoid crowded attractions on weekends; go early for the first entry slot.',
+                'Use metro passes or a transit card to save time and simplify commuting.',
+                'Keep 1–2 hours of buffer time per day for queues, weather, and spontaneous stops.'
+            ];
+            if (dest.type === 'japan') tips.unshift('Visit Akihabara on weekdays for a smoother anime-focused experience.');
+            return tips;
+        };
+
+        const buildFullPlan = (meta, dest) => {
+            const lang = getLang();
+            if (lang === 'zh') {
+                const hotel = [
+                    '东京：新宿/银座（交通便利 + 购物餐饮集中）',
+                    '京都：四条河原町/京都站（换乘方便 + 住宿选择多）'
+                ];
+                const budget = [
+                    '交通：25%（通票/新干线/市内交通）',
+                    '住宿：35%（中端酒店/交通便利区）',
+                    '餐饮：20%（特色餐厅 + 便利店补给）',
+                    '门票体验：15%（景点门票/主题咖啡/展览）',
+                    '机动：5%（应急/临时加点）'
+                ];
+                const transport = [
+                    dest.type === 'japan' ? '东京⇄京都：新干线（建议提前购买指定席）' : '主城内通勤：优先地铁/公交卡',
+                    '机场往返：优先机场快线或直达巴士，减少换乘。',
+                    '市内移动：将同一区域景点集中在同一天，减少折返。'
+                ];
+                return { hotel, budget, transport };
+            }
+            return {
+                hotel: ['Stay near a major transit hub (walkable + easy transfers).', 'Choose a second base close to top attractions to reduce daily commuting.'],
+                budget: ['Transit 25%', 'Hotels 35%', 'Food 20%', 'Tickets/experiences 15%', 'Buffer 5%'],
+                transport: ['Use fast intercity transit for long hops; book seats early if possible.', 'Prefer metro + transit cards inside cities.', 'Cluster attractions by area to avoid backtracking.']
+            };
+        };
+
+        const createCard = ({ icon, title, contentHtml }) => {
+            return `
+                <div class="ai-card">
+                    <div class="ai-card-title">
+                        <span class="ai-card-icon"><i class="${icon}"></i></span>
+                        <span>${escapeHtml(title)}</span>
+                    </div>
+                    <div class="ai-card-content">${contentHtml}</div>
+                </div>
+            `;
+        };
+
+        const renderPlan = () => {
+            if (!state.plan) return;
+            emptyEl.style.display = 'none';
+            const { destHeadline, reasoning, itinerary, tips, full } = state.plan;
+
+            const lang = getLang();
+            const destTitle = t('agent.card.dest');
+            const reasonTitle = t('agent.card.reason');
+            const itineraryTitle = t('agent.card.itinerary');
+            const tipsTitle = t('agent.card.tips');
+
+            const destHtml = `<div style="font-weight:800; font-size: 16px; color: rgba(241,245,249,0.98);">${escapeHtml(destHeadline)}</div>`;
+            const reasonHtml = `<ul>${reasoning.map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>`;
+            const itineraryHtml = `<ul>${itinerary.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`;
+            const tipsHtml = `<ul>${tips.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`;
+
+            const parts = [
+                createCard({ icon: 'fa-solid fa-location-dot', title: destTitle, contentHtml: destHtml }),
+                createCard({ icon: 'fa-solid fa-brain', title: reasonTitle, contentHtml: reasonHtml }),
+                createCard({ icon: 'fa-solid fa-calendar-days', title: itineraryTitle, contentHtml: itineraryHtml }),
+                createCard({ icon: 'fa-solid fa-lightbulb', title: tipsTitle, contentHtml: tipsHtml })
+            ];
+
+            if (state.fullEnabled && full) {
+                const hotelTitle = t('agent.card.hotel');
+                const budgetTitle = t('agent.card.budget');
+                const transportTitle = t('agent.card.transport');
+                parts.push(
+                    createCard({ icon: 'fa-solid fa-hotel', title: hotelTitle, contentHtml: `<ul>${full.hotel.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` }),
+                    createCard({ icon: 'fa-solid fa-wallet', title: budgetTitle, contentHtml: `<ul>${full.budget.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` }),
+                    createCard({ icon: 'fa-solid fa-train-subway', title: transportTitle, contentHtml: `<ul>${full.transport.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>` })
+                );
+            }
+
+            const followUpTitle = lang === 'zh' ? '💬' : 'Q';
+            const followUp = `
+                <div class="ai-card ai-followup">
+                    <div class="ai-card-title">
+                        <span class="ai-card-icon"><i class="fa-solid fa-message"></i></span>
+                        <span>${escapeHtml(followUpTitle)} ${escapeHtml(t('agent.followup.q'))}</span>
+                    </div>
+                    <div class="ai-followup-actions">
+                        <button type="button" class="btn btn-secondary" data-followup="nature">${escapeHtml(t('agent.followup.nature'))}</button>
+                        <button type="button" class="btn btn-secondary" data-followup="city">${escapeHtml(t('agent.followup.city'))}</button>
+                    </div>
+                </div>
+            `;
+
+            cardsEl.innerHTML = parts.join('') + followUp;
+            cardsEl.querySelectorAll('[data-followup]').forEach((btn) => {
+                btn.addEventListener('click', async (e) => {
+                    const v = e.currentTarget.getAttribute('data-followup');
+                    if (!v) return;
+                    state.followUp = v;
+                    await runGenerate({ followUp: v, mode: 'refine' });
+                });
+            });
+        };
+
+        const buildPlan = (rawText, { followUp, mode } = {}) => {
+            const meta = parseRequest(rawText);
+            const dest = pickDestination(meta);
+            let itinerary = buildItinerary(meta, dest, followUp);
+            if (mode === 'optimize') {
+                const swapped = itinerary.slice();
+                if (swapped.length >= 3) {
+                    const tmp = swapped[1];
+                    swapped[1] = swapped[2];
+                    swapped[2] = tmp;
+                }
+                itinerary = swapped.map((line, idx) => {
+                    if (idx % 2 === 0) return line;
+                    return line.replace(' / ', ' · ').replace(' - ', ' - ');
+                });
+            }
+            const reasoning = buildReasoning(meta, dest);
+            const tips = buildTips(meta, dest);
+            const full = buildFullPlan(meta, dest);
+
+            return { meta, destHeadline: dest.headline, itinerary, reasoning, tips, full };
+        };
+
+        const runThinking = async (titleKey, lineKeys) => {
+            thinkingEl.style.display = '';
+            thinkingLinesEl.innerHTML = '';
+            statusEl.textContent = getLang() === 'zh' ? '运行中' : 'Running';
+            await sleep(120);
+            await typeLine(t(titleKey));
+            for (const k of lineKeys) {
+                await sleep(260 + Math.random() * 220);
+                await typeLine(t(k));
+            }
+        };
+
+        const runGenerate = async ({ followUp, mode } = {}) => {
+            const text = state.lastRequest || inputEl.value.trim();
+            if (!text) {
+                emptyEl.style.display = '';
+                statusEl.textContent = getLang() === 'zh' ? '待输入' : 'Waiting';
+                alert(t('agent.notice.emptyInput'));
+                return;
+            }
+
+            state.lastRequest = text;
+            emptyEl.style.display = 'none';
+            renderShimmer();
+
+            setBusy(true, getLang() === 'zh' ? '思考中' : 'Thinking');
+            try {
+                if (mode === 'optimize') {
+                    await runThinking('agent.optimizingTitle', ['agent.optimizing.1', 'agent.optimizing.2', 'agent.optimizing.3']);
+                } else if (mode === 'full') {
+                    await runThinking('agent.fullTitle', ['agent.full.1', 'agent.full.2', 'agent.full.3']);
+                } else if (mode === 'refine') {
+                    await runThinking('agent.optimizingTitle', ['agent.optimizing.2', 'agent.optimizing.3']);
+                } else {
+                    await runThinking('agent.thinkingTitle', ['agent.think.1', 'agent.think.2', 'agent.think.3', 'agent.think.4']);
+                }
+
+                state.plan = buildPlan(text, { followUp, mode });
+                renderPlan();
+                statusEl.textContent = getLang() === 'zh' ? '完成' : 'Done';
+            } finally {
+                setBusy(false);
+            }
+        };
+
+        generateBtn.addEventListener('click', async () => {
+            state.followUp = null;
+            state.fullEnabled = false;
+            await runGenerate({ followUp: null, mode: 'base' });
+        });
+
+        optimizeBtn.addEventListener('click', async () => {
+            if (!state.plan) {
+                alert(t('agent.notice.emptyInput'));
+                return;
+            }
+            await runGenerate({ followUp: state.followUp, mode: 'optimize' });
+        });
+
+        fullBtn.addEventListener('click', async () => {
+            if (!state.plan) {
+                alert(t('agent.notice.emptyInput'));
+                return;
+            }
+            state.fullEnabled = !state.fullEnabled;
+            if (state.fullEnabled) {
+                await runGenerate({ followUp: state.followUp, mode: 'full' });
+            } else {
+                renderPlan();
+            }
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                generateBtn.click();
+            }
+        });
+
+        window.addEventListener('langchange', () => {
+            apply(panel);
+            if (state.plan) renderPlan();
+        });
+    };
+
     const init = () => {
         ensureDefault();
         mountSwitcher();
         apply();
+        initAgent();
     };
 
     if (document.readyState === 'loading') {
