@@ -511,15 +511,22 @@
             panel.style.left = '';
             panel.style.right = `${right}px`;
             panel.style.width = `${w}px`;
+
+            // Give main container right padding to make room for the panel
+            if (anchor) {
+                anchor.style.paddingRight = `${w + PANEL_CFG.gap}px`;
+            }
         };
 
         const setOpen = (open) => {
             state.isOpen = open;
+            const anchor = getAnchorEl();
             if (open) {
                 panel.classList.remove('closed');
                 applyPlacement();
             } else {
                 panel.classList.add('closed');
+                if (anchor) anchor.style.paddingRight = '';
             }
         };
 
