@@ -1628,12 +1628,18 @@ body.theme-ai .btn-magic:hover {
     cursor: pointer;
 }
 
+body[data-agent-demo="true"] {
+    --agent-panel-w: 300px;
+    --agent-panel-gap: 18px;
+}
+
+
 .ai-agent-panel {
     position: fixed;
-    right: 18px;
-    top: calc(var(--header-height) + 18px);
-    width: 300px;
-    height: calc(100vh - var(--header-height) - 36px);
+    right: var(--agent-panel-gap);
+    top: calc(var(--header-height) + var(--agent-panel-gap));
+    width: var(--agent-panel-w);
+    height: min(66vh, calc(100vh - var(--header-height) - (var(--agent-panel-gap) * 2)));
     border-radius: 22px;
     border: 1px solid rgba(0, 0, 0, 0.08);
     background: #fff;
@@ -1919,6 +1925,7 @@ body.theme-ai .btn-magic:hover {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
+
 
 @media (max-width: 768px) {
     .ai-agent-panel {

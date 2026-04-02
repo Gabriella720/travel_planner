@@ -482,16 +482,80 @@
         const cardsEl = panel.querySelector('#ai-agent-cards');
         const statusEl = panel.querySelector('#ai-agent-status');
 
-        const setOpen = (open) => {
+        const PANEL_CFG = {
+            preferredW: 300,
+            minW: 220,
+            gap: 18,
+            minRight: 12,
+            overlayInset: 12
+        };
+
+        const getAnchorEl = () =>
+            document.querySelector('main.container')
+            || document.querySelector('.planner-main.container')
+            || document.querySelector('main .container')
+            || document.querySelector('header .container')
+            || document.querySelector('.container');
+
+        const computeDock = () => {
+            const anchor = getAnchorEl();
+            const rect = anchor ? anchor.getBoundingClientRect() : { right: window.innerWidth };
+            const spaceRight = Math.max(0, window.innerWidth - rect.right);
+            const maxW = spaceRight - PANEL_CFG.gap;
+            if (maxW < PANEL_CFG.minW) return null;
+
+            const w = Math.min(PANEL_CFG.preferredW, maxW);
+            const right = Math.max(PANEL_CFG.minRight, spaceRight - w - PANEL_CFG.gap);
+            return { w, right };
+        };
+
+        const applyDockStyle = () => {
+            const dock = computeDock();
+            if (!dock) return false;
+
+            panel.style.left = '';
+            panel.style.right = `${dock.right}px`;
+            panel.style.width = `${dock.w}px`;
+            return true;
+        };
+
+        const applyOverlayStyle = () => {
+            panel.style.left = `${PANEL_CFG.overlayInset}px`;
+            panel.style.right = `${PANEL_CFG.overlayInset}px`;
+            panel.style.width = 'auto';
+        };
+
+        const setOpen = (open, mode = 'auto') => {
             state.isOpen = open;
-            if (open) panel.classList.remove('closed');
-            else panel.classList.add('closed');
+            if (!open) {
+                panel.classList.add('closed');
+                return;
+            }
+
+            panel.classList.remove('closed');
+            if (mode === 'overlay') {
+                applyOverlayStyle();
+                return;
+            }
+
+            if (!applyDockStyle()) {
+                panel.classList.add('closed');
+            }
         };
 
         setOpen(true);
 
-        fab.addEventListener('click', () => setOpen(!state.isOpen));
+        fab.addEventListener('click', () => {
+            if (state.isOpen) setOpen(false);
+            else setOpen(true, computeDock() ? 'auto' : 'overlay');
+        });
+
         closeBtn.addEventListener('click', () => setOpen(false));
+
+        window.addEventListener('resize', () => {
+            if (!state.isOpen) return;
+            if (!applyDockStyle()) setOpen(false);
+        });
 
         const setBusy = (busy, statusText) => {
             state.isBusy = busy;
