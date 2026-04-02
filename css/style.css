@@ -1631,6 +1631,7 @@ body.theme-ai .btn-magic:hover {
 body[data-agent-demo="true"] {
     --agent-panel-w: 300px;
     --agent-panel-gap: 18px;
+    padding-right: 0;
 }
 
 
@@ -1929,9 +1930,9 @@ body[data-agent-demo="true"] {
 
 @media (max-width: 768px) {
     .ai-agent-panel {
-        width: calc(100vw - 24px);
+        width: min(var(--agent-panel-w), calc(100vw - 24px));
         right: 12px;
-        left: 12px;
+        left: auto;
         top: calc(var(--header-height) + 12px);
     }
     .ai-agent-panel.closed {
